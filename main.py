@@ -28,10 +28,11 @@ print('Средняя продолжительность треков по ал�
 
 singer_without_album2020 = connection.execute("""
 SELECT name_singer FROM singer
-    JOIN singeralbum ON singer.id = singer_id
-    JOIN album ON album_id = album.id
-    WHERE NOT release_year = 2020
-    GROUP BY name_singer
+    WHERE NOT singer.id = (
+    SELECT singer.id FROM singer
+    JOIN singeralbum ON singer.id = singeralbum.singer_id
+    JOIN album ON singeralbum.album_id = album.id
+    WHERE album.release_year = 2020)
     """).fetchall()
 print('Исполнители, не выпустившие альбомы в 2020году:', singer_without_album2020)
 
@@ -43,7 +44,6 @@ SELECT songster.title FROM songster
     JOIN singeralbum ON album.id = singeralbum.album_id
     JOIN singer ON singeralbum.singer_id = singer.id
     WHERE name_singer = 'The Beatles'
-    GROUP BY songster.title
     """).fetchall()
 print('Названия сборников в которых присутствует The Beatles:', songster_with_The_Beatles)
 
@@ -72,7 +72,6 @@ SELECT name_singer FROM singer
     JOIN track ON album.id = track.album_id
     WHERE duration1 = (
     SELECT MIN(duration1) FROM track)
-    GROUP BY name_singer
     """).fetchall()
 print('Исполнитель, написавший самый короткий трек:', singer_with_min_track)
 
@@ -80,6 +79,6 @@ min_album = connection.execute("""
 SELECT album.title FROM album
     JOIN track ON album.id = track.album_id
     GROUP BY album.title
-    HAVING COUNT(track.album_id) = 1
+    HAVING COUNT(track.album_id) = (SELECT MIN(track.album_id) FROM track)
     """).fetchall()
 print('Название альбомов, содержащих наименьшее количество треков:', min_album)
