@@ -79,6 +79,9 @@ min_album = connection.execute("""
 SELECT album.title FROM album
     JOIN track ON album.id = track.album_id
     GROUP BY album.title
-    HAVING COUNT(track.album_id) = (SELECT MIN(track.album_id) FROM track)
+    HAVING COUNT(track.album_id) = (
+    SELECT track.album_id FROM track
+    JOIN album ON track.album_id = album.id
+    GROUP BY track.album_id LIMIT 1)
     """).fetchall()
 print('Название альбомов, содержащих наименьшее количество треков:', min_album)
